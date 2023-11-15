@@ -1,8 +1,9 @@
 use byteorder::{BigEndian, ByteOrder};
 
 #[repr(u8)]
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Default, FromPrimitive)]
 pub enum NackCode {
+    #[default]
     IncorrectPattern = 0x0,
     UnknownPayloadType = 0x1,
     MessageTooLong = 0x2,
@@ -10,22 +11,23 @@ pub enum NackCode {
     InvalidPayloadLength = 0x4,
     /*0x5 - 0xFF Reserved by 13400*/
 }
+
+
 #[repr(u8)]
-#[derive(Copy, Clone, Debug, FromPrimitive)]
+#[derive(Copy, Clone, Debug, FromPrimitive, Default)]
 pub enum ProtocolVersion {
     /*0x0 - Reserved */
     ISO13400_2010 = 0x1,
     ISO13400_2012 = 0x2,
     ISO13400_2019 = 0x3,
     /*0x4 - 0xFE Reserved by 13400*/
+    #[default]
     Default = 0xFF,
 }
-impl Default for ProtocolVersion {
-    fn default() -> Self { ProtocolVersion::Default }
-}
 #[repr(u16)]
-#[derive(Copy, Clone, Debug, FromPrimitive)]
+#[derive(Copy, Clone, Debug, FromPrimitive, Default)]
 pub enum PayloadType {
+    #[default]
     HeaderNack = 0x0,
     VehicleIDReq = 0x1,
     VehicleIDReqByEID = 0x2,
@@ -46,9 +48,6 @@ pub enum PayloadType {
     DiagMessageNAck = 0x8003,
     /*0x8004 - 0xEFFF Reserved by 13400*/
     /*0xF000 - 0xFFFF Reserved for manufacturer*/
-}
-impl Default for PayloadType {
-    fn default() -> Self { PayloadType::HeaderNack }
 }
 
 #[derive(Default)]

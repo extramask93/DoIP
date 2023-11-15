@@ -1,8 +1,6 @@
-use crate::message::header::DoIPHeader;
 use crate::message::header::NackCode;
 use crate::message::Message;
 use byteorder::{BigEndian, ByteOrder};
-use std::cmp::max;
 
 #[derive(Default)]
 pub struct RoutingActivationRequest {
@@ -12,8 +10,9 @@ pub struct RoutingActivationRequest {
     reserved_vm: Option<u32>
 }
 impl Message for RoutingActivationRequest  {
-    fn deserialize(&mut self, header: &DoIPHeader, payload: &[u8]) -> Result<(), NackCode> {
-        if payload.len() < max(header.payload_length as usize , 7) {
+    fn deserialize(&mut self, payload: &[u8], expected_len: usize) -> Result<(), NackCode> {
+        if ![7,11].contains(&expected_len) 
+        || payload.len() < expected_len {
             return Err(NackCode::InvalidPayloadLength);
         }
         self.source_address = BigEndian::read_u16(&payload[0..2]);
@@ -38,8 +37,8 @@ pub struct RoutingActivationResponse {
     reserved_vm: Option<u32>
 }
 impl Message for RoutingActivationResponse  {
-    fn deserialize(&mut self, header: &DoIPHeader, payload: &[u8]) -> Result<(), NackCode> {
-        if payload.len() < max(header.payload_length as usize , 9) {
+    fn deserialize(&mut self,payload: &[u8], expected_len: usize) -> Result<(), NackCode> {
+        if ![9,13].contains(&expected_len) {
             return Err(NackCode::InvalidPayloadLength);
         }
         self.client_logical_address = BigEndian::read_u16(&payload[0..2]);

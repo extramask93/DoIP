@@ -3,43 +3,47 @@ pub mod header;
 pub mod routing_activation;
 pub mod vehicle_identification;
 pub mod alive_check;
-use crate::message::diag_message::DiagMessage;
+pub mod entity_status;
+pub mod header_nack;
+pub mod diag_power_mode;
+use crate::message::diag_message::{DiagMessage, DiagMessageAck, DiagMessageNAck};
+use crate::message::diag_power_mode::{DiagnosticPowerModeRequest, DiagnosticPowerModeResponse};
 use crate::message::header::{DoIPHeader, PayloadType};
+use crate::message::header_nack::HeaderNackMessage;
 use crate::message::header::NackCode;
 use crate::message::routing_activation::{RoutingActivationRequest, RoutingActivationResponse};
 use crate::message::vehicle_identification::{
-    VehicleIdentificationRequest, VehicleIdentificationRequestEID, VehicleIdentificationRequestVIN,
+    VehicleIdentificationRequest, VehicleIdentificationRequestEID,
+    VehicleIdentificationRequestVIN, VehicleIdentificationResponse
 };
 use crate::message::alive_check::{AliveCheckRequest, AliveCheckResponse};
 use crate::message::entity_status::{EntityStatusRequest, EntityStatusResponse};
 
 pub trait Message {
-    /*Move it to the header*/
-    fn deserialize(&mut self, header: &DoIPHeader, payload: &[u8]) -> Result<(), NackCode>;
+    fn deserialize(&mut self, payload: &[u8], expected_length: usize) -> Result<(), NackCode>;
     fn serialize(&self);
 }
 
 pub fn message_factory(header: &DoIPHeader, payload: &[u8]) -> Result<Box<dyn Message>, NackCode> {
     let mut message: Box<dyn Message> = match header.payload_type {
-        //PayloadType::HeaderNack => Box::new(HeaderNack),
-        //PayloadType::VehicleIDRes => Box::new(VehicleIDRes),
-        PayloadType::VehicleIDReq => Box::new(VehicleIdentificationRequest::default()),
-        PayloadType::VehicleIDReqByEID => Box::new(VehicleIdentificationRequestEID::default()),
-        PayloadType::VehicleIDReqByVIN => Box::new(VehicleIdentificationRequestVIN::default()),
-        PayloadType::RoutingActivationReq => Box::new(RoutingActivationRequest::default()),
-        PayloadType::RoutingActivationRes => Box::new(RoutingActivationResponse::default()),
-        PayloadType::AliveCheckReq => Box::new(AliveCheckRequest::default()),
-        PayloadType::AliveCheckRes => Box::new(AliveCheckResponse::default()),
-        PayloadType::EntityStatusReq => Box::new(EntityStatusRequest::default()),
-        PayloadType::EntityStatusRes => Box::new(EntityStatusResponse::default()),
-        PayloadType::DiagMessage => Box::new(DiagMessage::default()),
-        //PayloadType::DiagPowerModeReq => Box::new(DiagPowerModeReq),
-        //PayloadType::DiagPowerModeRes => Box::new(DiagPowerModeRes),
-        //PayloadType::DiagMessageAck => Box::new(DiagMessageAck),
-        //PayloadType::DiagMessageNAck => Box::new(DiagMessageNAck),
-        _ => Box::new(DiagMessage::default()),
+        PayloadType::HeaderNack => Box::<HeaderNackMessage>::default(),
+        PayloadType::VehicleIDRes => Box::<VehicleIdentificationResponse>::default(),
+        PayloadType::VehicleIDReq => Box::<VehicleIdentificationRequest>::default(),
+        PayloadType::VehicleIDReqByEID => Box::<VehicleIdentificationRequestEID>::default(),
+        PayloadType::VehicleIDReqByVIN => Box::<VehicleIdentificationRequestVIN>::default(),
+        PayloadType::RoutingActivationReq => Box::<RoutingActivationRequest>::default(),
+        PayloadType::RoutingActivationRes => Box::<RoutingActivationResponse>::default(),
+        PayloadType::AliveCheckReq => Box::<AliveCheckRequest>::default(),
+        PayloadType::AliveCheckRes => Box::<AliveCheckResponse>::default(),
+        PayloadType::EntityStatusReq => Box::<EntityStatusRequest>::default(),
+        PayloadType::EntityStatusRes => Box::<EntityStatusResponse>::default(),
+        PayloadType::DiagMessage => Box::<DiagMessage>::default(),
+        PayloadType::DiagPowerModeReq => Box::<DiagnosticPowerModeRequest>::default(),
+        PayloadType::DiagPowerModeRes => Box::<DiagnosticPowerModeResponse>::default(),
+        PayloadType::DiagMessageAck => Box::<DiagMessageAck>::default(),
+        PayloadType::DiagMessageNAck => Box::<DiagMessageNAck>::default(),
     };
-    message.deserialize(header, payload)?;
+    message.deserialize(payload, header.payload_length as usize)?;
     Ok(message)
 }
 
