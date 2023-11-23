@@ -9,6 +9,13 @@ pub struct RoutingActivationRequest {
     reserved_doc: u32,
     reserved_vm: Option<u32>
 }
+impl RoutingActivationRequest {
+    pub fn from_payload(payload: &[u8], expected_len: usize) ->Result<Self,NackCode> {
+        let mut s = Self::default();
+        s.deserialize(payload, expected_len)?;
+        Ok(s)
+    }
+}
 impl Message for RoutingActivationRequest  {
     fn deserialize(&mut self, payload: &[u8], expected_len: usize) -> Result<(), NackCode> {
         if ![7,11].contains(&expected_len) 
@@ -24,7 +31,7 @@ impl Message for RoutingActivationRequest  {
         Ok(())
     }
 
-    fn serialize(&self) {
+    fn serialize(&self) -> Vec<u8> {
         todo!()
     }
 }
@@ -35,6 +42,13 @@ pub struct RoutingActivationResponse {
     routing_activation_response_code: u8,
     reserved_doc: u32,
     reserved_vm: Option<u32>
+}
+impl RoutingActivationResponse {
+    pub fn from_payload(payload: &[u8], expected_len: usize) ->Result<Self,NackCode> {
+        let mut s = Self::default();
+        s.deserialize(payload, expected_len)?;
+        Ok(s)
+    }
 }
 impl Message for RoutingActivationResponse  {
     fn deserialize(&mut self,payload: &[u8], expected_len: usize) -> Result<(), NackCode> {
@@ -51,7 +65,7 @@ impl Message for RoutingActivationResponse  {
         Ok(())
     }
 
-    fn serialize(&self) {
+    fn serialize(&self) -> Vec<u8> {
         todo!()
     }
 }

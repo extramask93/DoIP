@@ -1,9 +1,18 @@
+use std::default;
+
 use crate::message::header::NackCode;
 use crate::message::Message;
 use byteorder::{BigEndian, ByteOrder};
 
 #[derive(Default)]
 pub struct AliveCheckRequest {}
+impl AliveCheckRequest {
+    pub fn from_payload(payload: &[u8], expected_len: usize) ->Result<Self,NackCode> {
+        let mut s = Self::default();
+        s.deserialize(payload, expected_len)?;
+        Ok(s)
+    }
+}
 impl Message for AliveCheckRequest {
     fn deserialize(&mut self, _payload: &[u8], expected_len: usize) -> Result<(), NackCode> {
         if expected_len > 0  {
@@ -12,13 +21,20 @@ impl Message for AliveCheckRequest {
         Ok(())
     }
 
-    fn serialize(&self) {
-        todo!()
+    fn serialize(&self) -> Vec<u8> {
+        Vec::<u8>::default()
     }
 }
 #[derive(Default)]
 pub struct AliveCheckResponse {
     source_address: u16,
+}
+impl AliveCheckResponse {
+    pub fn from_payload(payload: &[u8], expected_len: usize) ->Result<Self,NackCode> {
+        let mut s = Self::default();
+        s.deserialize(payload, expected_len)?;
+        Ok(s)
+    }
 }
 impl Message for AliveCheckResponse {
     fn deserialize(&mut self, payload: &[u8], expected_len: usize) -> Result<(), NackCode> {
@@ -29,8 +45,11 @@ impl Message for AliveCheckResponse {
         Ok(())
     }
 
-    fn serialize(&self) {
-        todo!()
+    fn serialize(&self) -> Vec<u8> {
+        let mut result = Vec::<u8>::new();
+        result.resize(2, 0);
+        BigEndian::write_u16(&mut result, self.source_address);
+        result
     }
 }
 

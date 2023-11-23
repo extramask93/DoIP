@@ -21,29 +21,79 @@ use crate::message::entity_status::{EntityStatusRequest, EntityStatusResponse};
 
 pub trait Message {
     fn deserialize(&mut self, payload: &[u8], expected_length: usize) -> Result<(), NackCode>;
-    fn serialize(&self);
+    fn serialize(&self) -> Vec<u8>;
+}
+pub enum MessageVariant {
+    HeaderNackMessageVariant(HeaderNackMessage),
+    VehicleIDResVariant(VehicleIdentificationResponse),
+    VehicleIDReqVariant(VehicleIdentificationRequest),
+    VehicleIDReqByEIDVariant(VehicleIdentificationRequestEID),
+    VehicleIDReqByVINVariant(VehicleIdentificationRequestVIN),
+    RoutingActivationRequestVariant(RoutingActivationRequest),
+    RoutingActivationResponseVariant(RoutingActivationResponse),
+    AliveCheckRequestVariant(AliveCheckRequest),
+    AliveCheckRespnseVariant(AliveCheckResponse),
+    EntityStatusRequestVariant(EntityStatusRequest),
+    EntityStatusResponseVariant(EntityStatusResponse),
+    DiagnoticMessageVariant(DiagMessage),
+    DiagnosticPowerModeRequestVariant(DiagnosticPowerModeRequest),
+    DiagnosticPowerModeResponseVariant(DiagnosticPowerModeResponse),
+    DiagnosticMessageAckVariant(DiagMessageAck),
+    DiagnosticMessageNAckVariant(DiagMessageNAck),
 }
 
-pub fn message_factory(header: &DoIPHeader, payload: &[u8]) -> Result<Box<dyn Message>, NackCode> {
-    let mut message: Box<dyn Message> = match header.payload_type {
-        PayloadType::HeaderNack => Box::<HeaderNackMessage>::default(),
-        PayloadType::VehicleIDRes => Box::<VehicleIdentificationResponse>::default(),
-        PayloadType::VehicleIDReq => Box::<VehicleIdentificationRequest>::default(),
-        PayloadType::VehicleIDReqByEID => Box::<VehicleIdentificationRequestEID>::default(),
-        PayloadType::VehicleIDReqByVIN => Box::<VehicleIdentificationRequestVIN>::default(),
-        PayloadType::RoutingActivationReq => Box::<RoutingActivationRequest>::default(),
-        PayloadType::RoutingActivationRes => Box::<RoutingActivationResponse>::default(),
-        PayloadType::AliveCheckReq => Box::<AliveCheckRequest>::default(),
-        PayloadType::AliveCheckRes => Box::<AliveCheckResponse>::default(),
-        PayloadType::EntityStatusReq => Box::<EntityStatusRequest>::default(),
-        PayloadType::EntityStatusRes => Box::<EntityStatusResponse>::default(),
-        PayloadType::DiagMessage => Box::<DiagMessage>::default(),
-        PayloadType::DiagPowerModeReq => Box::<DiagnosticPowerModeRequest>::default(),
-        PayloadType::DiagPowerModeRes => Box::<DiagnosticPowerModeResponse>::default(),
-        PayloadType::DiagMessageAck => Box::<DiagMessageAck>::default(),
-        PayloadType::DiagMessageNAck => Box::<DiagMessageNAck>::default(),
+pub fn message_factory(header: &DoIPHeader, payload: &[u8]) -> Result<MessageVariant, NackCode> {
+    let message = match header.payload_type {
+        PayloadType::HeaderNack => MessageVariant::HeaderNackMessageVariant(
+            HeaderNackMessage::from_payload(payload, header.payload_length as usize)?
+            ),
+        PayloadType::VehicleIDRes => MessageVariant::VehicleIDResVariant(
+            VehicleIdentificationResponse::from_payload(payload, header.payload_length as usize)?
+            ),
+        PayloadType::VehicleIDReq => MessageVariant::VehicleIDReqVariant(
+            VehicleIdentificationRequest::from_payload(payload, header.payload_length as usize)?
+            ),
+        PayloadType::VehicleIDReqByEID => MessageVariant::VehicleIDReqByEIDVariant(
+            VehicleIdentificationRequestEID::from_payload(payload, header.payload_length as usize)?
+            ),
+        PayloadType::VehicleIDReqByVIN =>  MessageVariant::VehicleIDReqByVINVariant(
+            VehicleIdentificationRequestVIN::from_payload(payload, header.payload_length as usize)?
+            ),
+        PayloadType::RoutingActivationReq => MessageVariant::RoutingActivationRequestVariant(
+            RoutingActivationRequest::from_payload(payload, header.payload_length as usize)?
+            ),
+        PayloadType::RoutingActivationRes => MessageVariant::RoutingActivationResponseVariant(
+            RoutingActivationResponse::from_payload(payload, header.payload_length as usize)?
+            ),
+        PayloadType::AliveCheckReq => MessageVariant::AliveCheckRequestVariant(
+            AliveCheckRequest::from_payload(payload, header.payload_length as usize)?
+            ),
+        PayloadType::AliveCheckRes => MessageVariant::AliveCheckRespnseVariant(
+            AliveCheckResponse::from_payload(payload, header.payload_length as usize)?
+            ),
+        PayloadType::EntityStatusReq => MessageVariant::EntityStatusRequestVariant(
+            EntityStatusRequest::from_payload(payload, header.payload_length as usize)?
+            ),
+        PayloadType::EntityStatusRes => MessageVariant::EntityStatusResponseVariant(
+            EntityStatusResponse::from_payload(payload, header.payload_length as usize)?
+            ),
+        PayloadType::DiagPowerModeReq => MessageVariant::DiagnosticPowerModeRequestVariant(
+            DiagnosticPowerModeRequest::from_payload(payload, header.payload_length as usize)?
+            ),
+        PayloadType::DiagPowerModeRes => MessageVariant::DiagnosticPowerModeResponseVariant(
+            DiagnosticPowerModeResponse::from_payload(payload, header.payload_length as usize)?
+            ),
+        PayloadType::DiagMessage => MessageVariant::DiagnoticMessageVariant(
+            DiagMessage::from_payload(payload, header.payload_length as usize)?
+            ),
+        PayloadType::DiagMessageAck => MessageVariant::DiagnosticMessageAckVariant(
+            DiagMessageAck::from_payload(payload, header.payload_length as usize)?
+            ),
+        PayloadType::DiagMessageNAck => MessageVariant::DiagnosticMessageNAckVariant(
+            DiagMessageNAck::from_payload(payload, header.payload_length as usize)?
+            ),
+
     };
-    message.deserialize(payload, header.payload_length as usize)?;
     Ok(message)
 }
 

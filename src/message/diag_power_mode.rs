@@ -4,6 +4,13 @@ use crate::message::Message;
 #[derive(Default)]
 pub struct DiagnosticPowerModeRequest {
 }
+impl DiagnosticPowerModeRequest {
+    pub fn from_payload(payload: &[u8], expected_len: usize) ->Result<Self,NackCode> {
+        let mut s = Self::default();
+        s.deserialize(payload, expected_len)?;
+        Ok(s)
+    }
+}
 impl Message for DiagnosticPowerModeRequest {
     fn deserialize(&mut self,_payload: &[u8], expected_len: usize) -> Result<(), NackCode> {
         if expected_len != 0 {
@@ -12,7 +19,7 @@ impl Message for DiagnosticPowerModeRequest {
         Ok(())
     }
 
-    fn serialize(&self) {
+    fn serialize(&self) -> Vec<u8> {
         todo!()
     }
 }
@@ -34,6 +41,13 @@ impl Default for DiagnosticPowerMode {
 pub struct DiagnosticPowerModeResponse {
     power_mode: DiagnosticPowerMode,
 }
+impl DiagnosticPowerModeResponse {
+    pub fn from_payload(payload: &[u8], expected_len: usize) ->Result<Self,NackCode> {
+        let mut s = Self::default();
+        s.deserialize(payload, expected_len)?;
+        Ok(s)
+    }
+}
 impl Message for DiagnosticPowerModeResponse {
     fn deserialize(&mut self, payload: &[u8], expected_len: usize) -> Result<(), NackCode> {
         if expected_len != 1 || payload.is_empty() {
@@ -43,7 +57,7 @@ impl Message for DiagnosticPowerModeResponse {
         Ok(())
     }
 
-    fn serialize(&self) {
+    fn serialize(&self) -> Vec<u8> {
         todo!()
     }
 }

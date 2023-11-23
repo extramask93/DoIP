@@ -8,6 +8,13 @@ pub struct DiagMessage {
     target_address: u16,
     user_data: Vec<u8>
 }
+impl DiagMessage {
+    pub fn from_payload(payload: &[u8], expected_len: usize) ->Result<Self,NackCode> {
+        let mut s = Self::default();
+        s.deserialize(payload, expected_len)?;
+        Ok(s)
+    }
+}
 impl Message for DiagMessage {
     fn deserialize(&mut self, payload: &[u8], expected_len: usize) -> Result<(), NackCode> {
         if !(4..=8).contains(&expected_len) ||
@@ -22,7 +29,7 @@ impl Message for DiagMessage {
         Ok(())
     }
 
-    fn serialize(&self) {
+    fn serialize(&self) -> Vec<u8>{
         todo!()
     }
 }
@@ -39,6 +46,13 @@ pub struct DiagMessageAck {
     ack_code: AckCode,
     prev_diag_data: Vec<u8>
 }
+impl DiagMessageAck {
+    pub fn from_payload(payload: &[u8], expected_len: usize) ->Result<Self,NackCode> {
+        let mut s = Self::default();
+        s.deserialize(payload, expected_len)?;
+        Ok(s)
+    }
+}
 impl Message for DiagMessageAck {
     fn deserialize(&mut self, payload: &[u8], expected_len: usize) -> Result<(), NackCode> {
         if !(5..=10).contains(&expected_len) ||
@@ -54,7 +68,7 @@ impl Message for DiagMessageAck {
         Ok(())
     }
 
-    fn serialize(&self) {
+    fn serialize(&self) -> Vec<u8> {
         todo!()
     }
 }
@@ -65,6 +79,13 @@ pub struct DiagMessageNAck {
     target_address: u16,
     nack_code: NackCode,
     prev_diag_data: Vec<u8>
+}
+impl DiagMessageNAck {
+    pub fn from_payload(payload: &[u8], expected_len: usize) ->Result<Self,NackCode> {
+        let mut s = Self::default();
+        s.deserialize(payload, expected_len)?;
+        Ok(s)
+    }
 }
 impl Message for DiagMessageNAck {
     fn deserialize(&mut self,payload: &[u8], expected_len: usize) -> Result<(), NackCode> {
@@ -81,7 +102,7 @@ impl Message for DiagMessageNAck {
         Ok(())
     }
 
-    fn serialize(&self) {
+    fn serialize(&self) -> Vec<u8> {
         todo!()
     }
 }
