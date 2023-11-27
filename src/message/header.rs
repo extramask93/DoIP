@@ -58,8 +58,8 @@ pub struct DoIPHeader {
 }
  impl DoIPHeader {
     pub fn serialize(&self) -> Vec<u8> {
-        let mut buf: Vec<u8>;
-        let mut convert_buf: [u8;4];
+        let mut buf=  Vec::<u8>::new();
+        let mut convert_buf: [u8;4] = [0;4];
         buf.push(num::ToPrimitive::to_u8(&self.protocol_version).unwrap());
         buf.push(!num::ToPrimitive::to_u8(&self.protocol_version).unwrap());
         BigEndian::write_u16(&mut convert_buf, num::ToPrimitive::to_u16(&self.payload_type).unwrap());

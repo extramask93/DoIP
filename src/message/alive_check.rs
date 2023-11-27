@@ -1,5 +1,3 @@
-use std::default;
-
 use crate::message::header::NackCode;
 use crate::message::Message;
 use byteorder::{BigEndian, ByteOrder};

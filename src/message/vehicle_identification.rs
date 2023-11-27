@@ -99,10 +99,10 @@ pub enum SyncStatus {
 #[derive(Default)]
 pub struct VehicleIdentificationResponse
 {
-    vin: [u8;17],
-    logical_address: u16,
-    eid: [u8;6],
-    gid: [u8;6],
+    pub vin: [u8;17],
+    pub logical_address: u16,
+    pub eid: [u8;6],
+    pub gid: [u8;6],
     further_action_required: FurtherAction,
     sync_status: Option<SyncStatus>
 }
@@ -143,7 +143,7 @@ impl Message for VehicleIdentificationResponse  {
     }
 
     fn serialize(&self) -> Vec<u8> {
-        let mut conversion_buffer : [u8;2];
+        let mut conversion_buffer : [u8;2] = [0;2];
         let mut header: DoIPHeader = Default::default();
         header.payload_length = match self.sync_status {
             Some(_) => 33,
