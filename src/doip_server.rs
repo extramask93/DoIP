@@ -7,7 +7,7 @@ use crate::message::{
 use rand::Rng;
 use std::{
     io::{self},
-    net::{TcpListener, TcpStream, UdpSocket},
+    net::{TcpListener, TcpStream, UdpSocket, Ipv4Addr, SocketAddr},
     thread::{self},
     time::Duration,
 };
@@ -19,6 +19,7 @@ pub struct DoIPServer {
     gid: [u8; 6],
     logical_address: u16,
 }
+
 impl DoIPServer {
     const DOIP_PORT: u16 = 13200;
     const A_DO_IP_ANNOUNCE_NUM: u8 = 3;
@@ -65,7 +66,7 @@ impl DoIPServer {
         socket: &UdpSocket,
         response: &VehicleIdentificationResponse,
     ) -> io::Result<()> {
-        socket.send(&response.serialize())?;
+        socket.send_to(&response.serialize(), (Ipv4Addr::BROADCAST, DoIPServer::DOIP_PORT))?;
         Ok(())
     }
     fn announce_wait_random() {
@@ -74,7 +75,7 @@ impl DoIPServer {
         thread::sleep(a_do_ip_announce_wait);
     }
     fn init_udp_socket() -> io::Result<UdpSocket> {
-        let socket: UdpSocket = UdpSocket::bind(("0.0.0.0", DoIPServer::DOIP_PORT))?;
+        let socket: UdpSocket = UdpSocket::bind((Ipv4Addr::UNSPECIFIED, DoIPServer::DOIP_PORT))?;
         socket.set_broadcast(true)?;
         socket.set_write_timeout(Some(Duration::from_secs(5)))?;
         Ok(socket)
@@ -95,7 +96,7 @@ impl DoIPServer {
         message_factory(&header, &buff[DoIPHeader::length()..])
     }
     fn identification_handler(response: VehicleIdentificationResponse) -> ! {
-        let mut header_buff: [u8; DoIPHeader::length() + 17] = [0; DoIPHeader::length() + 17];
+        let mut header_buff: [u8; 40] = [0; 40];
         let socket = DoIPServer::init_udp_socket().expect("UDP socket setup failed");
         DoIPServer::announce_wait_random();
         DoIPServer::announce_on_upd_socket(&socket, &response).expect("Announcement failed");

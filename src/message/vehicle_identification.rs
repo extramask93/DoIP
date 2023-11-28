@@ -96,7 +96,7 @@ pub enum SyncStatus {
 }
 
  
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct VehicleIdentificationResponse
 {
     pub vin: [u8;17],
