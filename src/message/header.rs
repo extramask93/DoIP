@@ -1,7 +1,7 @@
 use byteorder::{BigEndian, ByteOrder};
 
 #[repr(u8)]
-#[derive(Copy, Clone, Debug, Default, FromPrimitive, ToPrimitive)]
+#[derive(Copy, Clone, Debug, Default, PartialEq, FromPrimitive, ToPrimitive)]
 pub enum NackCode {
     #[default]
     IncorrectPattern = 0x0,

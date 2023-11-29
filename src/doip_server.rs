@@ -80,7 +80,7 @@ impl DoIPServer {
         socket.set_write_timeout(Some(Duration::from_secs(5)))?;
         Ok(socket)
     }
-    fn is_identification_message_addressed_to_us(
+    fn is_id_req_addr_us(
         message: &MessageVariant,
         response: &VehicleIdentificationResponse,
     ) -> bool {
@@ -91,10 +91,6 @@ impl DoIPServer {
             _ => false,
         }
     }
-    fn parse_identification_request(buff: &[u8], len: usize) -> Result<MessageVariant, NackCode> {
-        let header = DoIPHeader::from_buffer(&buff[0..len])?;
-        message_factory(&header, &buff[DoIPHeader::length()..])
-    }
     fn identification_handler(response: VehicleIdentificationResponse) -> ! {
         let mut header_buff: [u8; 40] = [0; 40];
         let socket = DoIPServer::init_udp_socket().expect("UDP socket setup failed");
@@ -102,9 +98,9 @@ impl DoIPServer {
         DoIPServer::announce_on_upd_socket(&socket, &response).expect("Announcement failed");
         loop {
             if let Ok((len, addr)) = socket.recv_from(&mut header_buff) {
-                match DoIPServer::parse_identification_request(&header_buff, len) {
+                match message_factory(&header_buff) {
                     Ok(message) => {
-                        if DoIPServer::is_identification_message_addressed_to_us(
+                        if DoIPServer::is_id_req_addr_us(
                             &message, &response,
                         ) {
                             if let Err(r) = socket.send_to(&response.serialize(), addr) {
@@ -114,8 +110,6 @@ impl DoIPServer {
                     }
                     Err(code) => {
                         eprintln!("Identification message parsing failed: {:?}", code);
-                        //message format wrong, do not send nack, as it could
-                        //clog the system
                     }
                 }
             } else {

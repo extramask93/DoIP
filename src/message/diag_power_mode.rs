@@ -1,19 +1,22 @@
 use crate::message::header::NackCode;
 use crate::message::Message;
 
+use super::header::DoIPHeader;
+
 #[derive(Default)]
 pub struct DiagnosticPowerModeRequest {
 }
 impl DiagnosticPowerModeRequest {
-    pub fn from_payload(payload: &[u8], expected_len: usize) ->Result<Self,NackCode> {
+    pub fn from_payload(payload: &[u8]) ->Result<Self,NackCode> {
         let mut s = Self::default();
-        s.deserialize(payload, expected_len)?;
+        s.deserialize(payload)?;
         Ok(s)
     }
 }
 impl Message for DiagnosticPowerModeRequest {
-    fn deserialize(&mut self,_payload: &[u8], expected_len: usize) -> Result<(), NackCode> {
-        if expected_len != 0 {
+    fn deserialize(&mut self,payload: &[u8]) -> Result<(), NackCode> {
+        let header = DoIPHeader::from_buffer(payload)?;
+        if  header.payload_length!= 0 {
             return Err(NackCode::InvalidPayloadLength);
         }
         Ok(())
@@ -42,15 +45,16 @@ pub struct DiagnosticPowerModeResponse {
     power_mode: DiagnosticPowerMode,
 }
 impl DiagnosticPowerModeResponse {
-    pub fn from_payload(payload: &[u8], expected_len: usize) ->Result<Self,NackCode> {
+    pub fn from_payload(payload: &[u8]) ->Result<Self,NackCode> {
         let mut s = Self::default();
-        s.deserialize(payload, expected_len)?;
+        s.deserialize(payload)?;
         Ok(s)
     }
 }
 impl Message for DiagnosticPowerModeResponse {
-    fn deserialize(&mut self, payload: &[u8], expected_len: usize) -> Result<(), NackCode> {
-        if expected_len != 1 || payload.is_empty() {
+    fn deserialize(&mut self, payload: &[u8]) -> Result<(), NackCode> {
+        let header = DoIPHeader::from_buffer(payload)?;
+        if header.payload_length != 1 || payload.is_empty() {
             return Err(NackCode::InvalidPayloadLength);
         }
         self.power_mode = num::FromPrimitive::from_u8(payload[0]).unwrap();

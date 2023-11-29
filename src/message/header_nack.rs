@@ -5,21 +5,24 @@ use super::header::{DoIPHeader, PayloadType, ProtocolVersion};
 
 #[derive(Default)]
 pub struct HeaderNackMessage {
-    nack_code: NackCode
+    nack_code: NackCode,
 }
 impl HeaderNackMessage {
-    pub fn from_payload(payload: &[u8], expected_len: usize) ->Result<Self,NackCode> {
+    pub fn from_payload(payload: &[u8]) -> Result<Self, NackCode> {
         let mut s = Self::default();
-        s.deserialize(payload, expected_len)?;
+        s.deserialize(payload)?;
         Ok(s)
     }
     pub fn from_nack_code(code: NackCode) -> Self {
-        HeaderNackMessage { nack_code: code}
+        HeaderNackMessage { nack_code: code }
     }
 }
 impl Message for HeaderNackMessage {
-    fn deserialize(&mut self, payload: &[u8], expected_len: usize) -> Result<(), NackCode> {
-        if expected_len != 1 || payload.is_empty() {
+    fn deserialize(&mut self, payload: &[u8]) -> Result<(), NackCode> {
+        let header = DoIPHeader::from_buffer(payload)?;
+        if header.payload_length != 1
+            || payload.len() < (header.payload_length as usize + DoIPHeader::length())
+        {
             return Err(NackCode::InvalidPayloadLength);
         }
         self.nack_code = num::FromPrimitive::from_u8(payload[0]).unwrap();

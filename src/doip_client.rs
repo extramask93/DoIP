@@ -30,8 +30,7 @@ impl DoIPClient {
         Ok(socket)
     }
     fn parse_identification_response(buff: &[u8], len: usize) -> Result<MessageVariant, NackCode> {
-        let header = DoIPHeader::from_buffer(&buff[0..len])?;
-        message_factory(&header, &buff[DoIPHeader::length()..])
+        message_factory(&buff[..])
     }
     fn identification_handler() {
         let mut header_buff: [u8; DoIPHeader::length() + 17] = [0; DoIPHeader::length() + 17];

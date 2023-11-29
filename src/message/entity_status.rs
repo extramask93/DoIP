@@ -1,6 +1,8 @@
 use crate::message::header::NackCode;
 use crate::message::Message;
 use byteorder::{BigEndian, ByteOrder};
+
+use super::header::DoIPHeader;
 #[repr(u8)]
 #[derive(FromPrimitive, Default)]
 pub enum NodeType {
@@ -17,15 +19,16 @@ pub struct EntityStatusResponse {
     max_data_size: u32
 }
 impl EntityStatusResponse {
-    pub fn from_payload(payload: &[u8], expected_len: usize) ->Result<Self,NackCode> {
+    pub fn from_payload(payload: &[u8]) ->Result<Self,NackCode> {
         let mut s = Self::default();
-        s.deserialize(payload, expected_len)?;
+        s.deserialize(payload)?;
         Ok(s)
     }
 }
 impl Message for EntityStatusResponse {
-    fn deserialize(&mut self, payload: &[u8], expected_len: usize) -> Result<(), NackCode> {
-        if expected_len != 7 || payload.len() < 7 {
+    fn deserialize(&mut self, payload: &[u8]) -> Result<(), NackCode> {
+        let header = DoIPHeader::from_buffer(payload)?;
+        if header.payload_length != 7 || payload.len() < 7 {
             return Err(NackCode::InvalidPayloadLength);
         }
         self.node_type = num::FromPrimitive::from_u8(payload[0]).unwrap();
@@ -43,15 +46,16 @@ impl Message for EntityStatusResponse {
 pub struct EntityStatusRequest {
 }
 impl EntityStatusRequest {
-    pub fn from_payload(payload: &[u8], expected_len: usize) ->Result<Self,NackCode> {
+    pub fn from_payload(payload: &[u8]) ->Result<Self,NackCode> {
         let mut s = Self::default();
-        s.deserialize(payload, expected_len)?;
+        s.deserialize(payload)?;
         Ok(s)
     }
 }
 impl Message for EntityStatusRequest {
-    fn deserialize(&mut self, _payload: &[u8], expected_len: usize) -> Result<(), NackCode> {
-        if expected_len != 0 {
+    fn deserialize(&mut self, _payload: &[u8]) -> Result<(), NackCode> {
+        let header = DoIPHeader::from_buffer(_payload)?;
+        if  header.payload_length != 0 {
             return Err(NackCode::InvalidPayloadLength);
         }
         Ok(())

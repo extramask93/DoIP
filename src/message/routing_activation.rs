@@ -2,6 +2,8 @@ use crate::message::header::NackCode;
 use crate::message::Message;
 use byteorder::{BigEndian, ByteOrder};
 
+use super::header::DoIPHeader;
+
 #[derive(Default)]
 pub struct RoutingActivationRequest {
     source_address: u16,
@@ -10,16 +12,17 @@ pub struct RoutingActivationRequest {
     reserved_vm: Option<u32>
 }
 impl RoutingActivationRequest {
-    pub fn from_payload(payload: &[u8], expected_len: usize) ->Result<Self,NackCode> {
+    pub fn from_payload(payload: &[u8]) ->Result<Self,NackCode> {
         let mut s = Self::default();
-        s.deserialize(payload, expected_len)?;
+        s.deserialize(payload)?;
         Ok(s)
     }
 }
 impl Message for RoutingActivationRequest  {
-    fn deserialize(&mut self, payload: &[u8], expected_len: usize) -> Result<(), NackCode> {
-        if ![7,11].contains(&expected_len) 
-        || payload.len() < expected_len {
+    fn deserialize(&mut self, payload: &[u8]) -> Result<(), NackCode> {
+        let header = DoIPHeader::from_buffer(payload)?;
+        if ![7,11].contains(&header.payload_length) 
+        || payload.len() < header.payload_length as usize {
             return Err(NackCode::InvalidPayloadLength);
         }
         self.source_address = BigEndian::read_u16(&payload[0..2]);
@@ -44,15 +47,16 @@ pub struct RoutingActivationResponse {
     reserved_vm: Option<u32>
 }
 impl RoutingActivationResponse {
-    pub fn from_payload(payload: &[u8], expected_len: usize) ->Result<Self,NackCode> {
+    pub fn from_payload(payload: &[u8]) ->Result<Self,NackCode> {
         let mut s = Self::default();
-        s.deserialize(payload, expected_len)?;
+        s.deserialize(payload)?;
         Ok(s)
     }
 }
 impl Message for RoutingActivationResponse  {
-    fn deserialize(&mut self,payload: &[u8], expected_len: usize) -> Result<(), NackCode> {
-        if ![9,13].contains(&expected_len) {
+    fn deserialize(&mut self,payload: &[u8]) -> Result<(), NackCode> {
+        let header = DoIPHeader::from_buffer(payload)?;
+        if ![9,13].contains(&header.payload_length ) {
             return Err(NackCode::InvalidPayloadLength);
         }
         self.client_logical_address = BigEndian::read_u16(&payload[0..2]);
