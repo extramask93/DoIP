@@ -119,6 +119,7 @@ impl DoIPServer {
     }
 }
 
+#[derive(Default)]
 pub struct DoIPServerBuilder {
     server: DoIPServer,
 }
@@ -159,13 +160,12 @@ mod tests {
         let gid: [u8; 6] = [0; 6];
         let logical_address: u16 = 0;
         let port: u16 = 0;
-        let mut server_builder: DoIPServerBuilder;
+        let mut server_builder: DoIPServerBuilder = DoIPServerBuilder::default();
         server_builder
             .set_vin(&vin)
             .set_eid(&eid)
             .set_gid(&gid)
             .set_logical_address(logical_address);
         let server = server_builder.get_server();
-        server.start();
     }
 }

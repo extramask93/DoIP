@@ -25,7 +25,7 @@ pub enum ProtocolVersion {
     Default = 0xFF,
 }
 #[repr(u16)]
-#[derive(Copy, Clone, Debug, FromPrimitive, ToPrimitive, Default)]
+#[derive(Copy, Clone, PartialEq, Debug, FromPrimitive, ToPrimitive, Default)]
 pub enum PayloadType {
     #[default]
     HeaderNack = 0x0,
