@@ -12,7 +12,6 @@ pub enum NackCode {
     /*0x5 - 0xFF Reserved by 13400*/
 }
 
-
 #[repr(u8)]
 #[derive(Copy, Clone, Debug, FromPrimitive, ToPrimitive, Default)]
 pub enum ProtocolVersion {
@@ -56,13 +55,16 @@ pub struct DoIPHeader {
     pub payload_type: PayloadType,
     pub payload_length: u32,
 }
- impl DoIPHeader {
+impl DoIPHeader {
     pub fn serialize(&self) -> Vec<u8> {
-        let mut buf=  Vec::<u8>::new();
-        let mut convert_buf: [u8;4] = [0;4];
+        let mut buf = Vec::<u8>::new();
+        let mut convert_buf: [u8; 4] = [0; 4];
         buf.push(num::ToPrimitive::to_u8(&self.protocol_version).unwrap());
         buf.push(!num::ToPrimitive::to_u8(&self.protocol_version).unwrap());
-        BigEndian::write_u16(&mut convert_buf, num::ToPrimitive::to_u16(&self.payload_type).unwrap());
+        BigEndian::write_u16(
+            &mut convert_buf,
+            num::ToPrimitive::to_u16(&self.payload_type).unwrap(),
+        );
         buf.extend_from_slice(&convert_buf[0..2]);
         BigEndian::write_u32(&mut convert_buf, self.payload_length);
         buf.extend_from_slice(&convert_buf[0..4]);
@@ -71,25 +73,33 @@ pub struct DoIPHeader {
     pub const fn length() -> usize {
         8
     }
+    pub fn get_payload_len(buffer: &[u8]) -> u32 {
+        if buffer.len() < DoIPHeader::length() {
+            return 0;
+        }
+        return BigEndian::read_u32(&buffer[4..8]);
+    }
     pub fn from_buffer(buffer: &[u8]) -> Result<DoIPHeader, NackCode> {
-    if buffer.len() < DoIPHeader::length(){
-        return Err(NackCode::InvalidPayloadLength);
-    }
-    let protocol_version : Option<ProtocolVersion> = num::FromPrimitive::from_u8(buffer[0]);
-    let protocol_version_byte = buffer[0];
-    let inverted_protocol_version = buffer[1];
-    if protocol_version.is_none() ||
-       protocol_version_byte ^ inverted_protocol_version != 0xFF {
-        return Err(NackCode::IncorrectPattern);
-    }
+        if buffer.len() < DoIPHeader::length() {
+            return Err(NackCode::InvalidPayloadLength);
+        }
+        let protocol_version: Option<ProtocolVersion> = num::FromPrimitive::from_u8(buffer[0]);
+        let protocol_version_byte = buffer[0];
+        let inverted_protocol_version = buffer[1];
+        if protocol_version.is_none() || protocol_version_byte ^ inverted_protocol_version != 0xFF {
+            return Err(NackCode::IncorrectPattern);
+        }
 
-    let payload_type_native: u16 = BigEndian::read_u16(&buffer[2..4]);
-    let payload_type: PayloadType = match num::FromPrimitive::from_u16(payload_type_native) {
-        Some(a) => a,
-        None => return Err(NackCode::UnknownPayloadType),
-    };
-    let payload_length = BigEndian::read_u32(&buffer[4..8]);
-    Ok( DoIPHeader {protocol_version: protocol_version.unwrap(), payload_type, payload_length})
+        let payload_type_native: u16 = BigEndian::read_u16(&buffer[2..4]);
+        let payload_type: PayloadType = match num::FromPrimitive::from_u16(payload_type_native) {
+            Some(a) => a,
+            None => return Err(NackCode::UnknownPayloadType),
+        };
+        let payload_length = BigEndian::read_u32(&buffer[4..8]);
+        Ok(DoIPHeader {
+            protocol_version: protocol_version.unwrap(),
+            payload_type,
+            payload_length,
+        })
     }
 }
-

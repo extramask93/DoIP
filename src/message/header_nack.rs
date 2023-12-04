@@ -13,7 +13,7 @@ impl HeaderNackMessage {
         s.deserialize(payload)?;
         Ok(s)
     }
-    pub fn from_nack_code(code: NackCode) -> Self {
+    pub fn new(code: NackCode) -> Self {
         HeaderNackMessage { nack_code: code }
     }
 }

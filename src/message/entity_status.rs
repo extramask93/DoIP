@@ -19,6 +19,10 @@ pub struct EntityStatusResponse {
     max_data_size: u32
 }
 impl EntityStatusResponse {
+    pub fn new(node_type: NodeType, max_sockets:u8, open_sockets: u8,
+               max_data_size: u32) -> Self {
+        EntityStatusResponse{node_type, max_sockets, open_sockets, max_data_size}
+    }
     pub fn from_payload(payload: &[u8]) ->Result<Self,NackCode> {
         let mut s = Self::default();
         s.deserialize(payload)?;

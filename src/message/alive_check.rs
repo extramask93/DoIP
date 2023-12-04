@@ -28,7 +28,7 @@ impl Message for AliveCheckRequest {
 }
 #[derive(Default)]
 pub struct AliveCheckResponse {
-    source_address: u16,
+    pub source_address: u16,
 }
 impl AliveCheckResponse {
     pub fn from_payload(payload: &[u8]) ->Result<Self,NackCode> {

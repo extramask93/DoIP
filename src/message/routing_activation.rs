@@ -6,8 +6,8 @@ use super::header::DoIPHeader;
 
 #[derive(Default)]
 pub struct RoutingActivationRequest {
-    source_address: u16,
-    activation_type: u8,
+    pub source_address: u16,
+    pub activation_type: u8,
     reserved_doc: u32,
     reserved_vm: Option<u32>
 }
@@ -38,15 +38,32 @@ impl Message for RoutingActivationRequest  {
         todo!()
     }
 }
+#[repr(u8)]
+#[derive(Copy, Clone, Debug, Default, PartialEq, FromPrimitive, ToPrimitive)]
+pub enum RoutingActivationCode {
+    #[default]
+    DeniedUnknownSourceAddress=0x0,
+    DeniedNoSocketAvailable=0x1,
+    DeniedDifferentSA = 0x2,
+    DeniedSAInUse = 0x3,
+    DeniedActivationTypeUnsupported = 0x6,
+    RoutingActivated = 0x10
+
+}
 #[derive(Default)]
 pub struct RoutingActivationResponse {
     client_logical_address: u16,
     entity_logical_address: u16,
-    routing_activation_response_code: u8,
+    routing_activation_response_code: RoutingActivationCode,
     reserved_doc: u32,
     reserved_vm: Option<u32>
 }
 impl RoutingActivationResponse {
+    pub fn new(client_logical_address: u16, entity_logical_address: u16,
+               routing_activation_response_code: RoutingActivationCode) -> Self {
+        RoutingActivationResponse { client_logical_address, entity_logical_address,
+        routing_activation_response_code, reserved_doc : 0, reserved_vm: None }
+    }
     pub fn from_payload(payload: &[u8]) ->Result<Self,NackCode> {
         let mut s = Self::default();
         s.deserialize(payload)?;
